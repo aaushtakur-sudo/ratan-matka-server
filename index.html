@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RATAN MATKA Admin Panel</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;padding:18px;background:#101010;color:#fff;font-family:Arial,sans-serif}
+.card{max-width:480px;margin:30px auto;background:#1c1c1c;padding:22px;border-radius:16px;border:1px solid #b71c1c;box-shadow:0 5px 22px #0008}
+h1{text-align:center;color:#ff3030;margin-top:5px}
+h2{font-size:19px;color:#ff4545}
+p{color:#ccc;text-align:center}
+input,textarea,button{width:100%;padding:13px;margin-top:12px;border-radius:8px;font-size:16px}
+input,textarea{background:#111;color:white;border:1px solid #555}
+button{background:#d71920;color:white;border:0;font-weight:bold;cursor:pointer}
+button:active{opacity:.8}
+.notice{font-size:13px;color:#ffcc80;line-height:1.5}
+#dashboard{display:none}
+.record{padding:14px;background:#292929;border-left:4px solid #e31b23;margin-top:12px;border-radius:6px;overflow-wrap:anywhere}
+.delete{background:#555;padding:8px;font-size:13px}
+footer{text-align:center;color:#888;font-size:12px;margin:24px 0}
+</style>
+</head>
+<body>
+
+<div class="card" id="login">
+  <h1>RATAN MATKA</h1>
+  <p>ADMIN PANEL</p>
+  <h2>Admin Login</h2>
+  <input id="username" placeholder="Admin Username" autocomplete="username">
+  <input id="password" type="password" placeholder="Password" autocomplete="current-password">
+  <button onclick="login()">LOGIN</button>
+  <p id="message"></p>
+  <p class="notice">यह केवल स्थानीय डेमो है। इसमें वास्तविक सुरक्षित प्रमाणीकरण नहीं है।</p>
+</div>
+
+<div class="card" id="dashboard">
+  <h1>RATAN MATKA</h1>
+  <p>ADMIN DASHBOARD</p>
+
+  <h2>नई सूचना जोड़ें</h2>
+  <input id="recordTitle" placeholder="सूचना का शीर्षक">
+  <input id="recordDate" type="date">
+  <textarea id="recordDetails" rows="3" placeholder="सूचना का विवरण"></textarea>
+  <button onclick="addRecord()">सूचना सेव करें</button>
+
+  <h2>सेव की गई सूचनाएँ</h2>
+  <div id="records"></div>
+  <button onclick="logout()">LOGOUT</button>
+</div>
+
+<footer>RATAN MATKA • सूचना पैनल</footer>
+
+<script>
+async function login(){
+  const u=document.getElementById("username").value.trim();
+  const p=document.getElementById("password").value;
+  if(!u||!p){
+    document.getElementById("message").textContent="Username और Password भरें।";
+    return;
+  }
+  document.getElementById("login").style.display="none";
+  document.getElementById("dashboard").style.display="block";
+  await showRecords();
+}
+
+async function addRecord(){
+  const title=document.getElementById("recordTitle").value.trim();
+  const date=document.getElementById("recordDate").value;
+  const details=document.getElementById("recordDetails").value.trim();
+
+  if(!title||!date||!details){
+    alert("कृपया सभी जानकारी भरें।");
+    return;
+  }
+
+  try{
+    const body=new URLSearchParams({title,date,details});
+    const response=await fetch("/api/notice",{
+      method:"POST",
+      headers:{"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8"},
+      body:body.toString()
+    });
+
+    const result=await response.json();
+    if(!response.ok||!result.ok){
+      throw new Error(result.error||"सूचना सेव नहीं हुई");
+    }
+
+    document.getElementById("recordTitle").value="";
+    document.getElementById("recordDate").value="";
+    document.getElementById("recordDetails").value="";
+    alert("सूचना सर्वर पर सेव हो गई!");
+    await showRecords();
+  }catch(error){
+    alert("समस्या: "+error.message);
+  }
+}
+
+async function showRecords(){
+  const box=document.getElementById("records");
+  box.textContent="सूचनाएँ लोड हो रही हैं...";
+
+  try{
+    const response=await fetch("/api/results",{cache:"no-store"});
+    if(!response.ok) throw new Error("API से डेटा नहीं मिला");
+
+    const data=await response.json();
+    const list=Array.isArray(data.history)?data.history:[];
+    box.replaceChildren();
+
+    if(!list.length){
+      box.textContent="अभी कोई सूचना सेव नहीं है।";
+      return;
+    }
+
+    list.forEach(item=>{
+      const card=document.createElement("div");
+      card.className="record";
+
+      const title=document.createElement("strong");
+      title.textContent=item.title||"सूचना";
+
+      const date=document.createElement("p");
+      date.textContent=item.date||"";
+
+      const details=document.createElement("div");
+      details.textContent=item.details||"";
+
+      card.append(title,date,details);
+      box.appendChild(card);
+    });
+  }catch(error){
+    box.textContent="सूचनाएँ लोड नहीं हुईं: "+error.message;
+  }
+}
+
+function logout(){
+  document.getElementById("dashboard").style.display="none";
+  document.getElementById("login").style.display="block";
+  document.getElementById("password").value="";
+}
+</script>
+
+</body>
+</html>
