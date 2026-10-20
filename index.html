@@ -45,6 +45,16 @@ footer{text-align:center;color:#888;font-size:12px;margin:24px 0}
   <textarea id="recordDetails" rows="3" placeholder="सूचना का विवरण"></textarea>
   <button onclick="addRecord()">सूचना सेव करें</button>
 
+  <h2>💰 ADD POINTS</h2>
+  <div class="record">
+    <label for="pointPhone">यूज़र मोबाइल नंबर</label>
+    <input id="pointPhone" type="tel" placeholder="मोबाइल नंबर दर्ज करें">
+    <label for="pointAmount">पॉइंट्स की संख्या</label>
+    <input id="pointAmount" type="number" min="1" placeholder="पॉइंट्स दर्ज करें">
+    <button type="button" onclick="alert('यह केवल डिज़ाइन है। पॉइंट्स अभी जोड़े नहीं जाते।')">ADD POINTS</button>
+    <p class="notice">डेमो डिज़ाइन — अभी कोई पॉइंट सेव नहीं होगा।</p>
+  </div>
+
   <h2>सेव की गई सूचनाएँ</h2>
   <div id="records"></div>
   <button onclick="logout()">LOGOUT</button>
